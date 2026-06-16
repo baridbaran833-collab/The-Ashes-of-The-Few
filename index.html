@@ -1,0 +1,2146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ashes of the Few, a cinematic neo-noir interactive web-comic experience set in Los Angeles, 2026.">
+  <meta name="theme-color" content="#050507">
+  <title>Ashes of the Few</title>
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1770958420565-24b87432fb14?auto=format&fit=crop&w=2200&q=78">
+  <style>
+    :root {
+      --black: #040406;
+      --charcoal: #111116;
+      --gray: #24242b;
+      --soft: #e8e2d6;
+      --muted: #9e9aa8;
+      --red: #cf1e3a;
+      --magenta: #ff2c9d;
+      --violet: #7a4bff;
+      --blue: #20c7ff;
+      --gold: #d7a34b;
+      --green: #85ffcc;
+      --max-width: 1180px;
+      --nav-height: 72px;
+      --scroll: 0;
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--black);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(122, 75, 255, 0.18), transparent 30rem),
+        radial-gradient(circle at 88% 14%, rgba(255, 44, 157, 0.12), transparent 34rem),
+        linear-gradient(180deg, #030304 0%, #08080d 34%, #0d0c10 63%, #030304 100%);
+      color: var(--soft);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.55;
+      letter-spacing: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 36%, rgba(0, 0, 0, 0.56) 100%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent 12%, transparent 88%, rgba(255, 255, 255, 0.03));
+      mix-blend-mode: multiply;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    ::selection {
+      background: rgba(255, 44, 157, 0.45);
+      color: #fff;
+    }
+
+    .fx-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .rain {
+      opacity: 0.34;
+      background-image:
+        linear-gradient(110deg, transparent 0 62%, rgba(255, 255, 255, 0.7) 63%, transparent 68%),
+        linear-gradient(100deg, transparent 0 76%, rgba(32, 199, 255, 0.38) 78%, transparent 84%);
+      background-size: 2px 92px, 3px 142px;
+      animation: rain-fall 0.58s linear infinite;
+      filter: blur(0.2px);
+    }
+
+    .fog {
+      opacity: 0.45;
+      background:
+        radial-gradient(ellipse at 12% 76%, rgba(255, 255, 255, 0.10), transparent 28rem),
+        radial-gradient(ellipse at 82% 84%, rgba(122, 75, 255, 0.10), transparent 32rem),
+        radial-gradient(ellipse at 48% 92%, rgba(32, 199, 255, 0.08), transparent 28rem);
+      animation: fog-drift 26s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+    }
+
+    .reflection {
+      top: auto;
+      height: 46vh;
+      background:
+        repeating-linear-gradient(90deg, rgba(255, 44, 157, 0.08) 0 1px, transparent 1px 18px),
+        linear-gradient(180deg, transparent, rgba(207, 30, 58, 0.14), rgba(32, 199, 255, 0.08));
+      opacity: 0.32;
+      transform: translateY(calc(var(--scroll) * -0.02px));
+      filter: blur(12px);
+      mix-blend-mode: screen;
+    }
+
+    .lightning {
+      background: rgba(255, 255, 255, 0);
+      mix-blend-mode: screen;
+      transition: background 160ms ease;
+    }
+
+    .lightning.flash {
+      background: rgba(185, 220, 255, 0.34);
+    }
+
+    @keyframes rain-fall {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: -26px 92px, -32px 142px; }
+    }
+
+    @keyframes fog-drift {
+      from { transform: translate3d(-3%, 0, 0) scale(1.05); }
+      to { transform: translate3d(3%, -2%, 0) scale(1.12); }
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 clamp(1rem, 4vw, 3rem);
+      background: linear-gradient(180deg, rgba(4, 4, 6, 0.88), rgba(4, 4, 6, 0.34));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      min-width: max-content;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.55rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand::before {
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 1px solid var(--gold);
+      background: linear-gradient(135deg, var(--red), var(--magenta));
+      box-shadow: 0 0 22px rgba(255, 44, 157, 0.8);
+      transform: rotate(45deg);
+    }
+
+    .nav__links {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.6rem, 1.8vw, 1.6rem);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(232, 226, 214, 0.74);
+    }
+
+    .nav__links a {
+      position: relative;
+      padding: 0.35rem 0;
+    }
+
+    .nav__links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 100%;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--red), var(--blue));
+      transition: right 220ms ease;
+    }
+
+    .nav__links a:hover::after,
+    .nav__links a:focus-visible::after {
+      right: 0;
+    }
+
+    .hero {
+      min-height: 100svh;
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      align-items: end;
+      padding: calc(var(--nav-height) + 5rem) clamp(1rem, 4vw, 4rem) 4.5rem;
+      overflow: hidden;
+    }
+
+    .cinematic-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -4;
+      background-image: var(--image);
+      background-position: center;
+      background-size: cover;
+      transform: scale(1.08) translateY(calc(var(--scroll) * 0.04px));
+      filter: saturate(1.08) contrast(1.05) brightness(0.68);
+    }
+
+    .hero .cinematic-bg {
+      animation: slow-zoom 22s ease-in-out infinite alternate;
+    }
+
+    .hero::before,
+    .hero::after,
+    .band::after,
+    .episode__banner::after,
+    .page-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      z-index: -3;
+      background:
+        linear-gradient(90deg, rgba(4, 4, 6, 0.88) 0%, rgba(4, 4, 6, 0.38) 44%, rgba(4, 4, 6, 0.88) 100%),
+        linear-gradient(180deg, rgba(4, 4, 6, 0.18), rgba(4, 4, 6, 0.62) 58%, #040406 100%);
+    }
+
+    .hero::after {
+      z-index: -2;
+      background:
+        linear-gradient(115deg, transparent 0 48%, rgba(255, 44, 157, 0.20) 49%, transparent 53%),
+        radial-gradient(circle at 68% 32%, rgba(32, 199, 255, 0.18), transparent 17rem),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 5px);
+      mix-blend-mode: screen;
+      opacity: 0.72;
+    }
+
+    @keyframes slow-zoom {
+      from { transform: scale(1.08) translate3d(0, 0, 0); }
+      to { transform: scale(1.17) translate3d(1.5%, -1%, 0); }
+    }
+
+    .hero__content {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-grid;
+      grid-auto-flow: column;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 0 0 1.4rem;
+      color: rgba(232, 226, 214, 0.74);
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 3.1rem;
+      height: 1px;
+      background: linear-gradient(90deg, var(--red), var(--gold));
+      box-shadow: 0 0 16px rgba(207, 30, 58, 0.7);
+    }
+
+    .hero h1 {
+      max-width: 10ch;
+      margin: 0;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(4.2rem, 15vw, 13rem);
+      line-height: 0.84;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 10px rgba(255, 44, 157, 0.38),
+        0 0 42px rgba(32, 199, 255, 0.25),
+        0 20px 60px rgba(0, 0, 0, 0.78);
+    }
+
+    .hero__subtitle {
+      max-width: 830px;
+      margin: 1.35rem 0 0;
+      font-size: clamp(1.2rem, 3vw, 2.6rem);
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      line-height: 1.18;
+      color: #f4eee1;
+      text-shadow: 0 12px 34px rgba(0, 0, 0, 0.95);
+    }
+
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 2rem;
+    }
+
+    .pill {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(10, 10, 14, 0.52);
+      color: rgba(232, 226, 214, 0.86);
+      padding: 0.55rem 0.8rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.04);
+    }
+
+    main {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(4, 4, 6, 0), #050507 2rem, #050507 100%);
+    }
+
+    .section {
+      position: relative;
+      padding: clamp(4.5rem, 10vw, 8rem) clamp(1rem, 4vw, 4rem);
+      overflow: hidden;
+    }
+
+    .section__inner {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+    }
+
+    .section h2 {
+      margin: 0 0 1rem;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(2.6rem, 7vw, 6.8rem);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .section__lead {
+      max-width: 760px;
+      margin: 0;
+      color: rgba(232, 226, 214, 0.73);
+      font-size: clamp(1rem, 1.6vw, 1.25rem);
+    }
+
+    .band {
+      min-height: 62vh;
+      display: grid;
+      align-items: end;
+      position: relative;
+      isolation: isolate;
+      padding: clamp(5rem, 10vw, 8rem) clamp(1rem, 4vw, 4rem);
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .band::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      background-image: var(--image);
+      background-position: center;
+      background-size: cover;
+      filter: brightness(0.5) saturate(1.15);
+      transform: translateY(calc(var(--scroll) * -0.03px)) scale(1.08);
+    }
+
+    .band::after {
+      z-index: -2;
+      background:
+        linear-gradient(90deg, #050507 0%, rgba(5, 5, 7, 0.58) 48%, rgba(5, 5, 7, 0.88) 100%),
+        linear-gradient(180deg, transparent, #050507 100%);
+    }
+
+    .band__copy {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+    }
+
+    .band__copy p {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(1.3rem, 3.6vw, 3rem);
+      line-height: 1.1;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #fff3e5;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+
+    .character-card {
+      position: relative;
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: #111;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+      isolation: isolate;
+    }
+
+    .character-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background-image: var(--poster);
+      background-size: cover;
+      background-position: center;
+      filter: saturate(1.05) contrast(1.08) brightness(0.72);
+      transform: scale(1.06);
+      transition: transform 700ms ease, filter 700ms ease;
+    }
+
+    .character-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(180deg, transparent 18%, rgba(0, 0, 0, 0.35) 50%, rgba(4, 4, 6, 0.96) 100%),
+        radial-gradient(circle at 24% 18%, var(--glow), transparent 18rem);
+      opacity: 0.98;
+    }
+
+    .character-card:hover::before {
+      transform: scale(1.12);
+      filter: saturate(1.18) contrast(1.15) brightness(0.82);
+    }
+
+    .character-card__copy {
+      padding: 1.35rem;
+    }
+
+    .character-card h3 {
+      margin: 0;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .character-card p {
+      color: rgba(232, 226, 214, 0.82);
+      margin: 0.75rem 0 0;
+    }
+
+    .code-list {
+      margin: 1rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.55rem;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .code-list li {
+      display: grid;
+      grid-template-columns: 1.4rem 1fr;
+      gap: 0.5rem;
+    }
+
+    .code-list li::before {
+      content: attr(data-rule);
+      color: var(--gold);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
+    }
+
+    .issue-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin: 2.25rem 0 0;
+    }
+
+    .issue-nav a {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 0.58rem 0.82rem;
+      color: rgba(232, 226, 214, 0.76);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      background: rgba(255, 255, 255, 0.04);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .issue-nav a:hover,
+    .issue-nav a:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(255, 44, 157, 0.68);
+      background: rgba(255, 44, 157, 0.10);
+    }
+
+    .story-root {
+      margin-top: 2rem;
+    }
+
+    .story-prologue {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+      background:
+        linear-gradient(135deg, rgba(207, 30, 58, 0.12), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+    }
+
+    .story-prologue .source-line {
+      margin: 0.5rem 0;
+      color: rgba(232, 226, 214, 0.82);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1rem, 2.2vw, 1.45rem);
+    }
+
+    .story-prologue .source-line:first-child {
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(2.6rem, 7vw, 6rem);
+      line-height: 0.92;
+      text-transform: uppercase;
+      color: white;
+    }
+
+    .episode {
+      margin-top: clamp(3.5rem, 8vw, 7rem);
+      content-visibility: auto;
+      contain-intrinsic-size: 1200px;
+    }
+
+    .episode__banner {
+      position: relative;
+      min-height: clamp(320px, 52vw, 610px);
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 8px;
+      isolation: isolate;
+      box-shadow: 0 34px 100px rgba(0, 0, 0, 0.5);
+    }
+
+    .episode__banner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background-image: var(--image);
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.58) contrast(1.05) saturate(1.14);
+      transform: scale(1.06);
+    }
+
+    .episode__banner::after {
+      z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.88)),
+        linear-gradient(90deg, rgba(207, 30, 58, 0.30), transparent 42%, rgba(32, 199, 255, 0.16));
+    }
+
+    .episode__title {
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+    }
+
+    .episode__title span {
+      display: block;
+      margin-bottom: 0.7rem;
+      color: var(--gold);
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .episode__title h3 {
+      max-width: 950px;
+      margin: 0;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(2.4rem, 7vw, 6.5rem);
+      line-height: 0.93;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 0 14px 42px rgba(0, 0, 0, 0.7);
+    }
+
+    .page-grid {
+      display: grid;
+      gap: 1.1rem;
+      margin-top: 1.1rem;
+    }
+
+    .comic-page {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.92fr) minmax(0, 1.08fr);
+      min-height: 440px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018)),
+        #0c0c11;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+    }
+
+    .comic-page:nth-child(even) {
+      grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+    }
+
+    .comic-page:nth-child(even) .page-visual {
+      order: 2;
+    }
+
+    .page-visual {
+      position: relative;
+      min-height: 440px;
+      isolation: isolate;
+      overflow: hidden;
+      background-image: var(--image);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .page-visual::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background-image: var(--image);
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.08);
+      filter: brightness(0.66) contrast(1.1) saturate(1.12);
+      transition: transform 700ms ease;
+    }
+
+    .comic-page:hover .page-visual::before {
+      transform: scale(1.14);
+    }
+
+    .page-visual::after {
+      background:
+        linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.78) 100%),
+        linear-gradient(115deg, rgba(207, 30, 58, 0.22), transparent 46%, rgba(32, 199, 255, 0.14)),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 6px);
+      mix-blend-mode: normal;
+    }
+
+    .visual-number,
+    .visual-tag {
+      position: absolute;
+      z-index: 3;
+      left: 1rem;
+      right: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .visual-number {
+      top: 1rem;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.72rem;
+    }
+
+    .visual-tag {
+      bottom: 1rem;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.74rem;
+    }
+
+    .page-copy {
+      padding: clamp(1.1rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .page-copy h4 {
+      margin: 0 0 0.3rem;
+      color: var(--gold);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .panel-line,
+    .story-paragraph,
+    .caption-box,
+    .dialogue-box {
+      position: relative;
+      margin: 0;
+      border-radius: 8px;
+    }
+
+    .panel-line {
+      padding: 0.8rem 0.9rem;
+      border-left: 3px solid rgba(32, 199, 255, 0.66);
+      background: rgba(32, 199, 255, 0.055);
+      color: rgba(232, 226, 214, 0.86);
+      font-size: 0.96rem;
+    }
+
+    .story-paragraph {
+      padding: 0.85rem 0.95rem;
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(232, 226, 214, 0.86);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1rem;
+    }
+
+    .caption-box {
+      padding: 0.92rem 1rem;
+      border: 1px solid rgba(215, 163, 75, 0.28);
+      background:
+        linear-gradient(135deg, rgba(215, 163, 75, 0.16), rgba(215, 163, 75, 0.035)),
+        rgba(0, 0, 0, 0.34);
+      color: #fff1d0;
+      font-family: Georgia, "Times New Roman", serif;
+      box-shadow: inset 0 0 24px rgba(215, 163, 75, 0.045);
+    }
+
+    .dialogue-box {
+      align-self: start;
+      width: fit-content;
+      max-width: 100%;
+      padding: 0.9rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(232, 226, 214, 0.92);
+      color: #07070a;
+      font-family: Georgia, "Times New Roman", serif;
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.3);
+    }
+
+    .dialogue-box::after {
+      content: "";
+      position: absolute;
+      left: 1rem;
+      bottom: -0.55rem;
+      border-width: 0.6rem 0.6rem 0 0;
+      border-style: solid;
+      border-color: rgba(232, 226, 214, 0.92) transparent transparent transparent;
+    }
+
+    .block-label {
+      display: block;
+      margin: 0 0 0.35rem;
+      color: var(--red);
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .caption-box .block-label {
+      color: var(--gold);
+    }
+
+    .dialogue-box .block-label {
+      color: #9b1530;
+    }
+
+    .final-caption {
+      width: 100%;
+      padding: clamp(1rem, 3vw, 2rem);
+      border-color: rgba(255, 255, 255, 0.2);
+      background:
+        linear-gradient(135deg, rgba(255, 44, 157, 0.16), rgba(32, 199, 255, 0.08)),
+        rgba(4, 4, 6, 0.76);
+      color: white;
+      font-size: clamp(1.35rem, 3.5vw, 3rem);
+      line-height: 1.14;
+      text-shadow: 0 16px 42px rgba(0, 0, 0, 0.7);
+    }
+
+    .episode.is-epilogue .episode__banner {
+      min-height: clamp(430px, 64vw, 760px);
+    }
+
+    .episode.is-epilogue .comic-page {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .episode.is-epilogue .page-visual {
+      min-height: clamp(360px, 55vw, 720px);
+      order: 0;
+    }
+
+    .episode.is-epilogue .page-copy {
+      padding: clamp(1.25rem, 5vw, 3rem);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+
+    .episode.is-epilogue .final-caption,
+    .episode.is-epilogue .story-paragraph:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .recommend-grid,
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .sound-card,
+    .theme-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 1rem;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+        #0d0d12;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.33);
+      transition: transform 220ms ease, border-color 220ms ease;
+    }
+
+    .sound-card::before,
+    .theme-card::before {
+      content: "";
+      position: absolute;
+      inset: auto -20% -46% -20%;
+      height: 86%;
+      background: radial-gradient(circle, var(--accent), transparent 62%);
+      opacity: 0.32;
+      filter: blur(18px);
+      transform: translateY(16%);
+    }
+
+    .sound-card:hover,
+    .theme-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 44, 157, 0.38);
+    }
+
+    .sound-card h3,
+    .theme-card h3 {
+      position: relative;
+      margin: 0;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .sound-card p,
+    .theme-card p {
+      position: relative;
+      margin: 0.8rem 0 0;
+      color: rgba(232, 226, 214, 0.72);
+      font-size: 0.95rem;
+    }
+
+    .footer {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 4vw, 4rem);
+      border-top: 1px solid rgba(255, 255, 255, 0.11);
+      background:
+        linear-gradient(180deg, #07070a, #030304),
+        radial-gradient(circle at 72% 0%, rgba(215, 163, 75, 0.12), transparent 24rem);
+    }
+
+    .footer__inner {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 2rem;
+    }
+
+    .footer h2 {
+      margin: 0 0 0.8rem;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 0.95;
+      text-transform: uppercase;
+    }
+
+    .footer p,
+    .footer li {
+      color: rgba(232, 226, 214, 0.72);
+    }
+
+    .credits {
+      font-size: 0.86rem;
+    }
+
+    .credits summary {
+      cursor: pointer;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+    }
+
+    .credits ul {
+      margin: 1rem 0 0;
+      padding-left: 1rem;
+    }
+
+    .credits a {
+      color: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      .character-grid,
+      .recommend-grid,
+      .theme-grid,
+      .footer__inner {
+        grid-template-columns: 1fr;
+      }
+
+      .character-card {
+        min-height: 560px;
+      }
+
+      .comic-page,
+      .comic-page:nth-child(even) {
+        grid-template-columns: 1fr;
+      }
+
+      .comic-page:nth-child(even) .page-visual {
+        order: 0;
+      }
+
+      .episode.is-epilogue .page-copy {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --nav-height: 64px;
+      }
+
+      .nav {
+        align-items: center;
+      }
+
+      .nav__links {
+        gap: 0.65rem;
+        font-size: 0.67rem;
+        letter-spacing: 0.08em;
+      }
+
+      .nav__links a:nth-child(n+4) {
+        display: none;
+      }
+
+      .hero {
+        padding: calc(var(--nav-height) + 3rem) 1rem 3rem;
+      }
+
+      .hero h1 {
+        font-size: clamp(3.7rem, 23vw, 6.8rem);
+      }
+
+      .hero__subtitle {
+        font-size: clamp(1.05rem, 7vw, 1.55rem);
+      }
+
+      .section,
+      .band {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .character-card {
+        min-height: 520px;
+      }
+
+      .page-visual {
+        min-height: 330px;
+      }
+
+      .panel-line,
+      .story-paragraph,
+      .caption-box,
+      .dialogue-box {
+        font-size: 0.92rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="fx-layer rain" aria-hidden="true"></div>
+  <div class="fx-layer fog" aria-hidden="true"></div>
+  <div class="fx-layer reflection" aria-hidden="true"></div>
+  <div class="fx-layer lightning" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Primary navigation">
+    <a class="brand" href="#top">Ashes</a>
+    <div class="nav__links">
+      <a href="#cast">Cast</a>
+      <a href="#issues">Issues</a>
+      <a href="#recommended-atmosphere">Atmosphere</a>
+      <a href="#themes">Themes</a>
+      <a href="#author-note">Author</a>
+    </div>
+  </nav>
+
+  <header id="top" class="hero">
+    <div class="cinematic-bg" style="--image: url('https://images.unsplash.com/photo-1770958420565-24b87432fb14?auto=format&fit=crop&w=2200&q=78');" aria-hidden="true"></div>
+    <div class="hero__content reveal">
+      <p class="eyebrow">Los Angeles, 2026</p>
+      <h1>ASHES OF THE FEW</h1>
+      <p class="hero__subtitle">"Some builders cause wreckage. Some wreckers protect what's left. And some men are both before breakfast."</p>
+      <div class="hero__meta" aria-label="Story descriptors">
+        <span class="pill">Neo-noir crime saga</span>
+        <span class="pill">Interactive web-comic</span>
+        <span class="pill">Part 1: The City That Looked Away</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="band" style="--image: url('https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=2200&q=74');">
+      <div class="band__copy reveal">
+        <p>The city is beautiful in the way a blade is beautiful: polished, bright, and always capable of cutting someone open.</p>
+      </div>
+    </section>
+
+    <section id="cast" class="section">
+      <div class="section__inner">
+        <p class="eyebrow reveal">Main Characters</p>
+        <h2 class="reveal">The Few</h2>
+        <p class="section__lead reveal">Three men orbit the same broken city: one kills by code, one rules by system, and one turns wounds into architecture.</p>
+
+        <div class="character-grid">
+          <article class="character-card reveal" style="--poster: url('https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?auto=format&fit=crop&w=1400&q=76'); --glow: rgba(255,255,255,0.16);">
+            <div class="character-card__copy">
+              <h3>MAXTON</h3>
+              <p>Daytime forensic lab owner. Nighttime serial killer.</p>
+              <ul class="code-list" aria-label="Maxton's code">
+                <li data-rule="1">Protect innocents at all costs.</li>
+                <li data-rule="2">Never harm innocents intentionally.</li>
+                <li data-rule="3">Do not get caught.</li>
+                <li data-rule="4">Eliminate those who repeatedly prey on innocent people when the system fails.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="character-card reveal" style="--poster: url('https://images.unsplash.com/photo-1764583586850-bbeb284910d3?auto=format&fit=crop&w=1400&q=76'); --glow: rgba(32,199,255,0.22);">
+            <div class="character-card__copy">
+              <h3>KANE GREY</h3>
+              <p>Youngest self-made billionaire. Leader of 5T. Believes systems should be improved rather than bypassed.</p>
+              <p>Skyscrapers, boardrooms, luxury, control, and the awful weight of city surveillance.</p>
+            </div>
+          </article>
+
+          <article class="character-card reveal" style="--poster: url('https://images.unsplash.com/photo-1769051782031-ef8c6dce8795?auto=format&fit=crop&w=1400&q=76'); --glow: rgba(207,30,58,0.24);">
+            <div class="character-card__copy">
+              <h3>SCARPER</h3>
+              <p>Master manipulator. Acid-scarred criminal mastermind. Believes morality is hypocrisy.</p>
+              <p>Abandoned factories, acid symbolism, industrial decay, broken mirrors, and shadows that learned to speak.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" style="--image: url('https://images.unsplash.com/photo-1767593269818-aeb65fec2769?auto=format&fit=crop&w=2200&q=76');">
+      <div class="band__copy reveal">
+        <p>A city can hold two truths at once if one of them is bloody enough.</p>
+      </div>
+    </section>
+
+    <section id="issues" class="section">
+      <div class="section__inner">
+        <p class="eyebrow reveal">Story Presentation</p>
+        <h2 class="reveal">Issues</h2>
+        <p class="section__lead reveal">The complete Part 1 story is presented as a cinematic scroll of episodes, pages, captions, dialogue, and noir panels.</p>
+        <div id="issue-nav" class="issue-nav reveal" aria-label="Issue navigation"></div>
+        <div id="story-root" class="story-root"></div>
+      </div>
+    </section>
+
+    <section id="recommended-atmosphere" class="section">
+      <div class="section__inner">
+        <p class="eyebrow reveal">Sound Section</p>
+        <h2 class="reveal">Recommended Atmosphere</h2>
+        <div class="recommend-grid">
+          <article class="sound-card reveal" style="--accent: rgba(215,163,75,0.95);">
+            <h3>Noir Jazz</h3>
+            <p>Muted trumpet, brushed drums, wet pavement, late-night cigarette glow.</p>
+          </article>
+          <article class="sound-card reveal" style="--accent: rgba(122,75,255,0.95);">
+            <h3>Dark Ambient</h3>
+            <p>Low drones, distant thunder, empty rooms, fluorescent hum.</p>
+          </article>
+          <article class="sound-card reveal" style="--accent: rgba(255,44,157,0.95);">
+            <h3>Synthwave Noir</h3>
+            <p>Grounded neon pulses, midnight highways, city light reflections.</p>
+          </article>
+          <article class="sound-card reveal" style="--accent: rgba(32,199,255,0.95);">
+            <h3>Cinematic Orchestral</h3>
+            <p>Slow strings, restrained percussion, grief carrying a city on its back.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="themes" class="section">
+      <div class="section__inner">
+        <p class="eyebrow reveal">Themes Section</p>
+        <h2 class="reveal">What Survives</h2>
+        <div class="theme-grid">
+          <article class="theme-card reveal" style="--accent: rgba(207,30,58,0.95);">
+            <h3>Justice vs Vengeance</h3>
+            <p>The story refuses to make righteousness clean when justice arrives through blood.</p>
+          </article>
+          <article class="theme-card reveal" style="--accent: rgba(32,199,255,0.95);">
+            <h3>Indifference Creates Monsters</h3>
+            <p>The city does not simply fail people. It teaches them what failure costs.</p>
+          </article>
+          <article class="theme-card reveal" style="--accent: rgba(215,163,75,0.95);">
+            <h3>Trauma and Identity</h3>
+            <p>Each man becomes a doctrine built around the wound he could not escape.</p>
+          </article>
+          <article class="theme-card reveal" style="--accent: rgba(122,75,255,0.95);">
+            <h3>Corruption</h3>
+            <p>Power hides inside procedure, philanthropy, loopholes, and polite rooms with expensive glass.</p>
+          </article>
+          <article class="theme-card reveal" style="--accent: rgba(255,44,157,0.95);">
+            <h3>Moral Ambiguity</h3>
+            <p>No one here stands in clean light for long enough to become simple.</p>
+          </article>
+          <article class="theme-card reveal" style="--accent: rgba(133,255,204,0.95);">
+            <h3>Redemption</h3>
+            <p>The ending does not forgive easily. It asks who is willing to carry what remains.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="author-note" class="footer">
+    <div class="footer__inner">
+      <section>
+        <p class="eyebrow">Author Note</p>
+        <h2>ASHES OF THE FEW</h2>
+        <p>Story concept, narrative structure, characters, themes, and creative direction created by Barid.</p>
+        <p>Website implementation assisted through AI-guided development and design tools.</p>
+      </section>
+      <details class="credits">
+        <summary>Image Sources</summary>
+        <ul>
+          <li><a href="https://unsplash.com/photos/cars-on-a-city-street-at-night-with-neon-lights-yLcN5EY8S2k">Downtown night street by Qihang Fan</a></li>
+          <li><a href="https://unsplash.com/s/photos/los-angeles-skyline-night">Los Angeles skyline photography on Unsplash</a></li>
+          <li><a href="https://unsplash.com/photos/wet-city-street-at-night-with-flashing-police-lights-IdLclVrkjTc">Rain police lights by Chuang XY</a></li>
+          <li><a href="https://unsplash.com/photos/scientist-looking-through-a-microscope-in-a-lab-mO1eipp0ah8">Laboratory image by Araf Ibne Alam</a></li>
+          <li><a href="https://unsplash.com/photos/person-using-microscope-9vnACvX2748">Microscope image by Lucas Vasques</a></li>
+          <li><a href="https://unsplash.com/photos/a-factory-building-with-a-lot-of-smoke-coming-out-of-it-DP4u7nLp3tc">Industrial factory by Koen Sweers</a></li>
+          <li><a href="https://unsplash.com/photos/brown-rusted-metal-bridge-over-water-during-daytime-uVjWZ5ECm10">Industrial structure by Petr Magera</a></li>
+          <li><a href="https://unsplash.com/photos/a-night-time-view-of-a-city-with-lots-of-tall-buildings-_2O470PyZV0">City towers by Lena Polishko</a></li>
+          <li><a href="https://unsplash.com/photos/a-large-candle-lit-procession-in-a-dark-room-MBK3JF-ykJ0">Candlelight by Pille R. Priske</a></li>
+        </ul>
+      </details>
+    </div>
+  </footer>
+
+  <template id="story-source">
+TITLE: Ashes of the Few
+
+A cinematic neo-noir comic saga set in Los Angeles, 2026.
+
+The city is beautiful in the way a blade is beautiful: polished, bright, and always capable of cutting someone open.
+
+
+---
+
+PART 1: THE CITY THAT LOOKED AWAY
+
+ISSUE #1 — “THE PEOPLE WHO DIDN’T STOP”
+
+Page 1
+
+Splash panel: Los Angeles at night, rain streaking down glass towers. Neon billboards reflect in flooded streets. Ambulances cut through traffic like white knives.
+
+CAPTION
+
+Los Angeles: where everyone is visible, and no one is seen.
+
+Page 2
+
+Panel 1: Inside Maxton’s lab. Clean white lights. Glass tables. Blood samples under microscopes.
+Panel 2: Maxton in a lab coat, calm and precise. A man who looks like control itself.
+Panel 3: His eyes linger on a news screen showing another child predator released on a technicality.
+
+CAPTION (MAXTON)
+
+By day, I help the city tell the truth.
+By night, I make sure the truth means something.
+
+Page 3
+
+Flashback panel: 9 PM. A deserted road. Maxton and his sister are injured after a crash.
+They lie in the darkness, waiting. Cars pass. No one stops.
+Minutes stretch. Rain falls harder.
+
+CAPTION (MAXTON)
+
+Thirty minutes is a long time when you’re bleeding and the world is deciding you’re not worth the detour.
+
+Page 4
+
+Panel 1: An elderly wealthy couple finally pulls over. The woman wraps Maxton’s sister in her coat. The man calls emergency services.
+Panel 2: Maxton watches them like they are mythic beings.
+Panel 3: The ambulance arrives at last.
+
+CAPTION (MAXTON)
+
+Most people look away. A few don’t.
+I decided I would become one of the few.
+
+Page 5
+
+Panel 1: Present day. Maxton in a dark room, preparing his kill tools.
+Panel 2: He chooses a target file: a repeat offender with a spotless public record and a trail of victims behind him.
+Panel 3: Maxton pauses, smiling faintly.
+
+CAPTION (MAXTON)
+
+Protect innocents at all costs.
+That was the first rule.
+The rest… were just the scaffolding.
+
+Page 6
+
+Panel 1: Outside, a man staggers out of a luxury club and gets into a black car.
+Panel 2: Across the street, a shadow watches from the rooftop of a parking structure.
+Panel 3: That shadow belongs to Scarper.
+
+SCARPER (voice-over)
+
+Beautiful cities are built on ugly habits.
+
+Page 7
+
+Panel 1: Scarper, half-hidden in darkness, touches the burned skin on his face.
+Panel 2: A childhood memory: factory lights, acid splashing, his father shouting, his mother recoiling.
+Panel 3: Selena, older now, sweetly smiling while using him for criminal work.
+
+SCARPER (voice-over)
+
+They called me ruined before I even learned how to hate them properly.
+
+Page 8
+
+Panel 1: Scarper releases a vial of acid into a drain.
+Panel 2: His expression is calm, almost meditative.
+Panel 3: A red file folder lands on a table: KANE GREY / 5T / MAxton Labs.
+
+SCARPER
+
+Let’s see which of you bleeds first.
+
+
+---
+
+ISSUE #2 — “THE BILLIONAIRE AND THE BUTCHER”
+
+Page 1
+
+Panel 1: Kane Grey in a glass tower boardroom, 27, composed, expensive suit, unreadable face.
+Panel 2: His team, 5T, watches a citywide threat map.
+Panel 3: Kane signs a hostile acquisition document with the same hand he uses to authorize city protection operations.
+
+CAPTION (KANE)
+
+My father taught me that systems fail because people are weak.
+Martha taught me weakness is where compassion begins.
+
+Page 2
+
+Flashback panel: Young Kane in an apartment with his biological parents: alcohol, shouting, a broken lamp, a frightened child.
+Then a cut to Wilson Grey and Martha taking him in.
+
+CAPTION (KANE)
+
+I learned early that love can exist inside damage.
+That does not make the damage smaller.
+
+Page 3
+
+Panel 1: Kane receives a report on unexplained deaths of predators and traffickers.
+Panel 2: Evidence points to an expert with lab access.
+Panel 3: The name Maxton appears.
+
+KANE
+
+Find me everything on the lab owner.
+The man is either cleaning the city… or hiding inside it.
+
+Page 4
+
+Panel 1: Maxton at the lab in daylight, courteous and brilliant, reassuring a mother whose daughter was assaulted and needs forensic evidence.
+Panel 2: He gives the woman a tissue, his voice gentle.
+Panel 3: As she leaves, his expression collapses into something colder.
+
+CAPTION (MAXTON)
+
+They come to me for proof.
+They never know proof is the easiest part.
+
+Page 5
+
+Panel 1: At night, Maxton stalks his target through an underground parking garage.
+Panel 2: He stops when he sees a child in danger nearby.
+Panel 3: Without hesitation, he changes direction and saves the child first.
+
+CAPTION (MAXTON)
+
+The code was never about balance.
+It was about priority.
+
+Page 6
+
+Panel 1: Kane’s 5T network arrives at the scene too late to see Maxton’s face.
+Panel 2: They only find the rescued child and a predator dying in a hidden corridor.
+Panel 3: Kane stares at the aftermath.
+
+KANE
+
+He saved the child.
+
+5T MEMBER
+
+And killed the man.
+
+KANE
+
+Yes.
+That is the problem.
+
+Page 7
+
+Panel 1: Scarper watches footage of both men.
+Panel 2: He smiles when he sees Kane’s company logo on the report.
+Panel 3: He begins leaking anonymous clips online, framing Maxton as a serial executioner and Kane as a corrupt billionaire hiding behind charity.
+
+SCARPER
+
+Let them hate the wrong man first.
+Hatred is easier when it’s efficient.
+
+
+---
+
+ISSUE #3 — “THE CITY LEARNS TO POINT”
+
+Page 1
+
+Panel 1: News broadcasts explode with the same edited story: a lab owner linked to murders.
+Panel 2: Social media posts. Anger. Fear. Conspiracy.
+Panel 3: Protestors outside Maxton’s lab. Others hold candles, claiming he protected families the law failed to save.
+
+CAPTION
+
+A city can hold two truths at once if one of them is bloody enough.
+
+Page 2
+
+Panel 1: Kane begins surveillance of Maxton.
+Panel 2: Maxton notices the surveillance almost immediately and starts investigating Kane in return.
+Panel 3: Neither man is certain who is hunting whom.
+
+KANE
+
+He’s too careful.
+
+MAxton
+
+He’s too clean.
+
+Page 3
+
+Panel 1: Scarper’s first major trap: a bus hostage crisis staged in a rainstorm.
+Panel 2: Kane’s 5T team arrives with precision, evacuating civilians.
+Panel 3: Maxton appears independently, slips into the bus through the rear emergency hatch, and removes the gunman before anyone sees him.
+
+Page 4
+
+Panel 1: Kane watches Maxton carry out a child from the bus.
+Panel 2: Maxton and Kane lock eyes for the first time across the wet street.
+Panel 3: Both understand the other is dangerous.
+Neither knows how much.
+
+CAPTION (KANE)
+
+He was not behaving like a predator.
+That was worse.
+
+Page 5
+
+Panel 1: Scarper’s men attack a homeless shelter rumored to house witnesses against a trafficking ring.
+Panel 2: Maxton saves the residents, visibly furious.
+Panel 3: One of the rescued elderly women recognizes him from the news and whispers, “Thank you.”
+
+CAPTION (MAXTON)
+
+Pleasure and duty do not cancel each other out.
+That is the part I never say aloud.
+
+Page 6
+
+Panel 1: Kane sees Maxton’s face after the rescue — not heroic, not evil, just exhausted.
+Panel 2: Kane hesitates instead of arresting him.
+Panel 3: That hesitation costs him later.
+
+KANE
+
+If I had to guess, I’d say you’re dangerous.
+
+MAXTON
+
+And if I had to guess, I’d say you are too polite to be honest about it.
+
+Page 7
+
+Panel 1: Scarper records both men on a private monitor.
+Panel 2: He overlays their public images with edited crime footage.
+Panel 3: He speaks like a man making a lecture into a war.
+
+SCARPER
+
+One of them kills to protect.
+One of them protects to control.
+Let’s see which sin the city prefers.
+
+
+---
+
+ISSUE #4 — “FIRE ON THE WATERLINE”
+
+Page 1
+
+Panel 1: A cargo terminal at dusk.
+Panel 2: A fire breaks out in the shipping yard.
+Panel 3: Workers trapped inside smoke-filled containers.
+
+Page 2
+
+Panel 1: Kane arrives first, coordinating 5T rescue teams from a helicopter.
+Panel 2: He orders a risky crane lift to save the trapped workers.
+Panel 3: Maxton slips inside the burning structure anyway.
+
+CAPTION (KANE)
+
+He doesn’t trust systems because systems failed him.
+I trust systems because people fail them.
+
+Page 3
+
+Panel 1: Inside the blaze, Maxton saves a trapped teenage boy.
+Panel 2: The boy sees the blood on Maxton’s hands and flinches.
+Panel 3: Maxton quietly hands him to Kane’s rescue line.
+
+MAXTON
+
+Don’t look at me.
+Look at the exit.
+
+Page 4
+
+Panel 1: Scarper reveals his true plan: he’s not just framing them.
+He is trying to force the city to admit it wants its monsters to be useful.
+
+Panel 2: He releases evidence of corporate corruption tied to Kane’s acquisitions, bribed judges, and predatory executives protected by the city’s elite.
+Panel 3: He leaks partial truths that make Kane look complicit.
+
+SCARPER
+
+The powerful call it order when they benefit.
+They call it evil when they lose control.
+
+Page 5
+
+Panel 1: Kane’s team confronts him about the leaked evidence.
+Panel 2: Kane realizes some of the accusations are true.
+Panel 3: He is angry not because he is innocent, but because Scarper is using the truth like a weapon.
+
+KANE
+
+That’s the difference between him and me.
+I use systems.
+He uses wounds.
+
+Page 6
+
+Panel 1: Maxton is cornered by police after the fire, but he and Kane mutually choose not to expose each other.
+Panel 2: Temporary alliance forms under pressure.
+Panel 3: Both understand Scarper is bigger than their private war.
+
+KANE
+
+If I help you, you don’t disappear.
+
+MAXTON
+
+If I help you, you don’t try to make me into a principle.
+
+KANE
+
+No promises.
+
+MAXTON
+
+Good. I hate liars.
+
+
+---
+
+ISSUE #5 — “THE FACE IN THE ACID”
+
+Page 1
+
+Panel 1: Scarper’s lair beneath a condemned factory.
+Panel 2: Walls covered in screens showing protests, riots, rescue footage, and edited clips of Maxton killing.
+Panel 3: Scarper finally explains himself.
+
+SCARPER
+
+I was burned once and everyone decided what I was worth after that.
+The lesson was simple: people don’t hate evil.
+They hate inconvenience.
+
+Page 2
+
+Panel 1: Flashback of Scarper as a child in the factory accident.
+Panel 2: Family members turning away.
+Panel 3: Selena, the criminal who “loved” him, exploiting him behind a smile.
+
+SCARPER
+
+She was the only one who touched me without fear.
+That’s how low the bar was.
+
+Page 3
+
+Panel 1: Scarper unleashes acid attacks across the city through his crew, targeting judges, traffickers, and corrupt executives.
+Panel 2: Some are guilty. Some are merely adjacent.
+Panel 3: That uncertainty is his real weapon.
+
+Page 4
+
+Panel 1: Kane and Maxton track Scarper through a flooded underpass during a storm.
+Panel 2: They argue while running.
+Panel 3: The argument becomes the first honest conversation between them.
+
+KANE
+
+You enjoy killing.
+
+MAXTON
+
+Yes.
+
+KANE
+
+And that doesn’t scare you?
+
+MAXTON
+
+It would if I thought that was the whole reason I do it.
+
+Page 5
+
+Panel 1: They find Scarper holding hostages in a chamber of hanging industrial lights.
+Panel 2: Maxton wants the direct kill.
+Panel 3: Kane insists on saving the hostages first.
+
+Page 6
+
+Panel 1: Maxton chooses the hostages over his own hunt.
+Panel 2: Kane sees the choice and finally understands Maxton’s code is not a lie, even if Maxton is.
+Panel 3: They save the civilians together.
+
+CAPTION (KANE)
+
+That was the first time I saw it clearly.
+He wasn’t good.
+But he wasn’t empty either.
+
+Page 7
+
+Panel 1: Scarper escapes, smiling.
+Panel 2: He leaves behind a final message:
+“The city will choose a monster. It always does.”
+
+
+---
+
+ISSUE #6 — “THE VERDICT”
+
+Page 1
+
+Panel 1: Maxton is arrested after a coordinated leak ties him to several killings.
+Panel 2: Kane, exhausted and morally shaken, does not stop the arrest.
+Panel 3: Maxton allows it.
+
+KANE
+
+You could run.
+
+MAXTON
+
+And prove them right?
+
+Page 2
+
+Panel 1: Interrogation room. Stark white lights.
+Panel 2: Kane visits Maxton alone.
+Panel 3: Neither looks like a victor.
+
+KANE
+
+Tell me the truth.
+Do you regret what you did?
+
+MAXTON
+
+I regret every innocent I failed to save.
+That’s not the same thing.
+
+Page 3
+
+Panel 1: Kane is silent.
+Panel 2: Maxton’s expression changes slightly, almost embarrassed by his own honesty.
+Panel 3: The first real crack in his armor.
+
+MAXTON
+
+I liked it.
+I hated that I liked it.
+Both things are true.
+That’s the part people can’t stand.
+
+Page 4
+
+Panel 1: Trial sequence in montage.
+Panel 2: The public is divided.
+Some call for death. Others call him the only man who ever protected them when institutions failed.
+Panel 3: Candles appear outside the courthouse before the verdict.
+
+CAPTION
+
+The city did not agree on what he was.
+That was the only honest thing about it.
+
+Page 5
+
+Panel 1: Maxton is sentenced to execution.
+Panel 2: No dramatic speech.
+Just stillness.
+Panel 3: He accepts it.
+
+MAXTON
+
+If I disappear now, maybe the ones who come after me will ask better questions.
+
+Page 6
+
+Panel 1: Final conversation between Kane and Maxton, hours before execution.
+Panel 2: Kane looks wrecked.
+Panel 3: Maxton, for the first time, looks tired instead of dangerous.
+
+KANE
+
+You were never just a monster.
+
+MAXTON
+
+No.
+That would have been simpler.
+
+KANE
+
+You’re leaving me with this.
+
+MAXTON
+
+Good.
+Carry it.
+That’s what the rest of us were never taught how to do.
+
+Page 7
+
+Panel 1: Execution chamber.
+Panel 2: Maxton strapped in.
+Panel 3: He closes his eyes.
+
+No rescue. No collapse. No miracle.
+
+CAPTION (MAXTON)
+
+Protect the innocent.
+Even now.
+Especially now.
+
+Page 8
+
+Panel 1: The injection begins.
+Panel 2: Kane watches from behind glass, unable to move.
+Panel 3: Maxton’s final breath.
+
+FINAL CAPTION
+
+He died as the city had always feared he would.
+And as the city had always needed him to be.
+
+
+---
+
+EPILOGUE — “THE PEACEFUL RIOT”
+
+The reaction is not chaos.
+Not fire.
+Not looting.
+
+It is worse for the powerful.
+
+It is conscience.
+
+Candles. Posters. White flowers. Silent marches across the country.
+
+People gather outside courthouses, labs, and police stations. They do not shout at first. They ask questions.
+
+Why did the system fail the innocent?
+
+Why did a killer become a guardian in the first place?
+
+Why did the city only care when the body count became public?
+
+Kane stands alone on a rooftop above the lights of Los Angeles.
+
+Wilson’s lessons echo in him.
+Martha’s compassion.
+Maxton’s code.
+Scarper’s poison.
+
+For the first time, Kane cannot place himself on the side of clean certainty.
+
+FINAL CAPTION (KANE)
+
+I used to believe the world was broken into builders and wreckers.
+Now I know better.
+Some builders cause wreckage.
+Some wreckers protect what’s left.
+And some men are both before breakfast.
+
+FINAL PANEL
+
+Kane watches the candlelight spread across the city like a second constellation.
+
+Far below, a child places a white flower at the foot of a memorial wall.
+
+In the reflection of the glass behind Kane, for one frame only, a figure stands where no one was supposed to be.
+
+Whether it is Scarper, a copycat, a survivor, or memory itself is left unresolved.
+
+FINAL LINE
+
+Morality is not a straight road.
+It is a city full of unmarked intersections.
+And sometimes the people who walk the darkest streets are the only ones trying to keep others alive.
+
+END OF PART 1
+  </template>
+
+  <script>
+    (() => {
+      const images = {
+        city: "https://images.unsplash.com/photo-1770958420565-24b87432fb14?auto=format&fit=crop&w=1800&q=76",
+        skyline: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1800&q=74",
+        tower: "https://images.unsplash.com/photo-1764583586850-bbeb284910d3?auto=format&fit=crop&w=1800&q=76",
+        lab: "https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?auto=format&fit=crop&w=1800&q=76",
+        microscope: "https://images.unsplash.com/photo-1743792930023-774d74a015cd?auto=format&fit=crop&w=1800&q=76",
+        factory: "https://images.unsplash.com/photo-1737244350322-523cc3d52c03?auto=format&fit=crop&w=1800&q=76",
+        industrial: "https://images.unsplash.com/photo-1769051782031-ef8c6dce8795?auto=format&fit=crop&w=1800&q=76",
+        police: "https://images.unsplash.com/photo-1767593269818-aeb65fec2769?auto=format&fit=crop&w=1800&q=76",
+        wetStreet: "https://images.unsplash.com/photo-1762100716015-413e2e9b8a44?auto=format&fit=crop&w=1800&q=76",
+        bridge: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1800&q=74",
+        candle: "https://images.unsplash.com/photo-1775119790858-746dcdef4e32?auto=format&fit=crop&w=1800&q=76",
+        ocean: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=72"
+      };
+
+      const rotatingImages = [
+        images.city,
+        images.skyline,
+        images.lab,
+        images.microscope,
+        images.tower,
+        images.factory,
+        images.industrial,
+        images.police,
+        images.wetStreet,
+        images.candle
+      ];
+
+      const visualTags = [
+        "Rain on glass",
+        "Forensic light",
+        "Wet concrete",
+        "Corporate altitude",
+        "Industrial decay",
+        "Police reflection",
+        "Candle weather",
+        "Unmarked roads"
+      ];
+
+      function escapeHtml(value) {
+        return value
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function slugify(value) {
+        return value
+          .toLowerCase()
+          .replace(/[“”"]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
+      function isLabel(line) {
+        return /^(CAPTION|FINAL CAPTION)(?: \([^)]+\))?$/.test(line) ||
+          /^(KANE|MAXTON|MAxton|SCARPER|5T MEMBER)(?: \(voice-over\))?$/.test(line);
+      }
+
+      function startsPanel(line) {
+        return /^(Panel \d+:|Splash panel:|Flashback panel:|FINAL PANEL|FINAL LINE)$/.test(line);
+      }
+
+      function groupLines(lines) {
+        const groups = [];
+        let current = [];
+        lines.forEach((line) => {
+          if (line.trim() === "") {
+            if (current.length) {
+              groups.push(current);
+              current = [];
+            }
+            return;
+          }
+          current.push(line.trim());
+        });
+        if (current.length) groups.push(current);
+        return groups;
+      }
+
+      function blockHtml(label, lines) {
+        const joined = lines.map(escapeHtml).join("<br>");
+        const labelHtml = `<span class="block-label">${escapeHtml(label)}</span>`;
+        const isCaption = label.includes("CAPTION");
+        const isFinal = label.includes("FINAL CAPTION");
+        const className = isCaption ? `caption-box${isFinal ? " final-caption" : ""}` : "dialogue-box";
+        return `<div class="${className}">${labelHtml}${joined}</div>`;
+      }
+
+      function groupHtml(group) {
+        if (group.some((line) => startsPanel(line) || line.startsWith("Panel "))) {
+          return group.map((line) => `<p class="panel-line">${escapeHtml(line)}</p>`).join("");
+        }
+        return `<p class="story-paragraph">${group.map(escapeHtml).join("<br>")}</p>`;
+      }
+
+      function renderBlocks(lines) {
+        const groups = groupLines(lines);
+        let html = "";
+        for (let i = 0; i < groups.length; i += 1) {
+          const group = groups[i];
+          const first = group[0];
+          if (group.length === 1 && isLabel(first) && groups[i + 1]) {
+            html += blockHtml(first, groups[i + 1]);
+            i += 1;
+            continue;
+          }
+          html += groupHtml(group);
+        }
+        return html;
+      }
+
+      function imageFor(text, index) {
+        const lower = text.toLowerCase();
+        if (lower.includes("lab") || lower.includes("microscope") || lower.includes("interrogation")) return images.lab;
+        if (lower.includes("blood samples") || lower.includes("proof") || lower.includes("evidence")) return images.microscope;
+        if (lower.includes("kane") || lower.includes("boardroom") || lower.includes("tower") || lower.includes("surveillance") || lower.includes("billionaire")) return images.tower;
+        if (lower.includes("scarper") || lower.includes("acid") || lower.includes("factory") || lower.includes("industrial")) return images.industrial;
+        if (lower.includes("fire") || lower.includes("cargo") || lower.includes("shipping") || lower.includes("container")) return images.factory;
+        if (lower.includes("police") || lower.includes("courthouse") || lower.includes("arrested") || lower.includes("trial")) return images.police;
+        if (lower.includes("bus") || lower.includes("rainstorm") || lower.includes("flooded") || lower.includes("underpass")) return images.wetStreet;
+        if (lower.includes("candles") || lower.includes("white flowers") || lower.includes("memorial") || lower.includes("marches")) return images.candle;
+        if (lower.includes("rooftop") || lower.includes("constellation") || lower.includes("sunrise") || lower.includes("ocean")) return images.skyline;
+        return rotatingImages[index % rotatingImages.length];
+      }
+
+      function parseStory() {
+        const storyTemplate = document.getElementById("story-source");
+        const source = (storyTemplate.content.textContent || storyTemplate.textContent || "").replace(/\r/g, "").trim();
+        const lines = source.split("\n");
+        const intro = [];
+        const issues = [];
+        let currentIssue = null;
+        let currentPage = null;
+
+        function flushPage() {
+          if (currentIssue && currentPage) {
+            currentIssue.pages.push(currentPage);
+          }
+          currentPage = null;
+        }
+
+        function flushIssue() {
+          flushPage();
+          if (currentIssue) {
+            issues.push(currentIssue);
+          }
+          currentIssue = null;
+        }
+
+        lines.forEach((line) => {
+          const trimmed = line.trim();
+          if (trimmed === "---") return;
+
+          if (/^(ISSUE #\d+|EPILOGUE)/.test(trimmed)) {
+            flushIssue();
+            currentIssue = {
+              title: trimmed,
+              isEpilogue: trimmed.startsWith("EPILOGUE"),
+              pages: []
+            };
+            if (currentIssue.isEpilogue) {
+              currentPage = { title: "Final Sequence", lines: [] };
+            }
+            return;
+          }
+
+          if (/^Page \d+$/.test(trimmed) && currentIssue) {
+            flushPage();
+            currentPage = { title: trimmed, lines: [] };
+            return;
+          }
+
+          if (trimmed === "" && currentIssue && !currentPage) {
+            return;
+          }
+
+          if (!currentIssue) {
+            intro.push(line);
+            return;
+          }
+
+          if (!currentPage) {
+            currentPage = { title: "Sequence", lines: [] };
+          }
+          currentPage.lines.push(line);
+        });
+
+        flushIssue();
+        return { intro, issues };
+      }
+
+      function renderStory() {
+        const { intro, issues } = parseStory();
+        const root = document.getElementById("story-root");
+        const nav = document.getElementById("issue-nav");
+
+        const introLines = intro
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0)
+          .map((line) => `<p class="source-line">${escapeHtml(line)}</p>`)
+          .join("");
+
+        root.innerHTML = `<section class="story-prologue reveal">${introLines}</section>`;
+
+        nav.innerHTML = issues
+          .map((issue) => `<a href="#${slugify(issue.title)}">${escapeHtml(issue.title.replace(/ — .*/, ""))}</a>`)
+          .join("");
+
+        issues.forEach((issue, issueIndex) => {
+          const issueText = issue.pages.map((page) => page.lines.join("\n")).join("\n");
+          const bannerImage = imageFor(`${issue.title}\n${issueText}`, issueIndex);
+          const pages = issue.pages.map((page, pageIndex) => {
+            const pageText = page.lines.join("\n");
+            const image = imageFor(pageText, pageIndex + issueIndex * 3);
+            const tag = visualTags[(pageIndex + issueIndex) % visualTags.length];
+            return `
+              <article class="comic-page reveal">
+                <div class="page-visual" style="--image: url('${image}');" aria-hidden="true">
+                  <span class="visual-number">${escapeHtml(page.title)}</span>
+                  <span class="visual-tag">${tag}</span>
+                </div>
+                <div class="page-copy">
+                  <h4>${escapeHtml(page.title)}</h4>
+                  ${renderBlocks(page.lines)}
+                </div>
+              </article>
+            `;
+          }).join("");
+
+          root.insertAdjacentHTML("beforeend", `
+            <section id="${slugify(issue.title)}" class="episode ${issue.isEpilogue ? "is-epilogue" : ""}">
+              <div class="episode__banner reveal" style="--image: url('${issue.isEpilogue ? images.candle : bannerImage}');">
+                <div class="episode__title">
+                  <span>${issue.isEpilogue ? "Final Section" : "Comic Issue"}</span>
+                  <h3>${escapeHtml(issue.title)}</h3>
+                </div>
+              </div>
+              <div class="page-grid">${pages}</div>
+            </section>
+          `);
+        });
+      }
+
+      function setupReveal() {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion || !("IntersectionObserver" in window)) {
+          document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
+          return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+
+        document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+      }
+
+      function setupScrollMotion() {
+        let ticking = false;
+        const update = () => {
+          document.documentElement.style.setProperty("--scroll", String(window.scrollY));
+          ticking = false;
+        };
+        window.addEventListener("scroll", () => {
+          if (!ticking) {
+            window.requestAnimationFrame(update);
+            ticking = true;
+          }
+        }, { passive: true });
+        update();
+      }
+
+      function setupLightning() {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const lightning = document.querySelector(".lightning");
+        if (!lightning || reduceMotion) return;
+
+        const strike = () => {
+          lightning.classList.add("flash");
+          window.setTimeout(() => lightning.classList.remove("flash"), 110 + Math.random() * 140);
+          window.setTimeout(strike, 9000 + Math.random() * 17000);
+        };
+
+        window.setTimeout(strike, 4200 + Math.random() * 5200);
+      }
+
+      renderStory();
+      setupReveal();
+      setupScrollMotion();
+      setupLightning();
+    })();
+  </script>
+</body>
+</html>
